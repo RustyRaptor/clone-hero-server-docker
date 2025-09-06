@@ -1,11 +1,11 @@
-FROM debian:buster-slim AS build-env
+FROM debian:bullseye-slim AS build-env
 
 ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /clonehero
 
 RUN apt-get update \
- && apt-get install --no-install-recommends -y ca-certificates wget unzip curl jq libicu63 \
+ && apt-get install --no-install-recommends -y ca-certificates wget unzip curl jq libicu67 \
  && rm -rf /var/lib/apt/lists/* \
  && mkdir config
 
@@ -17,18 +17,20 @@ RUN wget -qO chserver.zip https://github.com/clonehero-game/releases/releases/la
  && unzip chserver.zip \
  && rm ./chserver.zip \
  && mv ./ChStandaloneServer-* ./chserver \
- && mv ./chserver/linux-x64/* . \
+ && mv ./chserver/linux-x64 ./chserver/linux-x86_64 \
+ && mv ./chserver/linux-arm64 ./chserver/linux-aarch64 \
+ && mv ./chserver/linux-arm ./chserver/linux-armv7l \
+ && mv ./chserver/linux-$(arch)/* . \
  && rm -rf ./chserver \
- && mv ./Server ./clone-hero-server \
- && chmod +x ./clone-hero-server \
+ && chmod +x ./Server \
  && chown -R 1000 ./config
 
-FROM debian:buster-slim
+FROM debian:bullseye-slim
 
 RUN apt-get update \
- && apt-get install --no-install-recommends -y ca-certificates libicu63 libgssapi-krb5-2 \
+ && apt-get install --no-install-recommends -y ca-certificates libicu67 libgssapi-krb5-2 \
  && rm -rf /var/lib/apt/lists/* \
- && ln -sf /usr/src/clonehero/clone-hero-server /usr/bin/cloneheroserver \
+ && ln -sf /usr/src/clonehero/Server /usr/bin/cloneheroserver \
  && useradd -m clonehero
 
 WORKDIR /usr/src/clonehero
